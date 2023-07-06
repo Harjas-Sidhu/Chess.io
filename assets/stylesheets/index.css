@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #262421;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#board {
+    width: 47vw;
+    height: 47vw;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: antiquewhite;
+    position: relative;
+    left: -15vw;
+    flex-direction: column;
+}
+
+.row {
+    width: 100%;
+    height: 5.875vw;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cell{
+    width: 5.875vw;
+    height: 5.875vw;
+}
+
+.cell.white{
+    background-color: #eeeed2;
+}
+
+.cell.black{
+    background-color: #769656;
+}
+
+.piece{
+    height: 5.875vw;
+    width: 5.875vw;
+    background-size: contain;
+}
+
+.cell > .black.piece.pawn{
+    background-image: url("../images/bp.png");
+}
+
+.cell > .black.piece.rook{
+    background-image: url("../images/br.png");
+}
+
+.cell > .black.piece.knight{
+    background-image: url("../images/bn.png");
+}
+
+.cell > .black.piece.bishop{
+    background-image: url("../images/bb.png");
+}
+
+.cell > .black.piece.queen{
+    background-image: url("../images/bq.png");
+}
+
+.cell > .black.piece.king{
+    background-image: url("../images/bk.png");
+}
+
+.cell > .white.piece.pawn{
+    background-image: url("../images/wp.png");
+}
+
+.cell > .white.piece.rook{
+    background-image: url("../images/wr.png");
+}
+
+.cell > .white.piece.knight{
+    background-image: url("../images/wn.png");
+}
+
+.cell > .white.piece.bishop{
+    background-image: url("../images/wb.png");
+}
+
+.cell > .white.piece.queen{
+    background-image: url("../images/wq.png");
+}
+
+.cell > .white.piece.king{
+    background-image: url("../images/wk.png");
+}
+
+.selected{
+    animation: select 0.5s ease-in-out;
+}
+
+.black.selected{
+    background-color: #bbca2a;
+}
+
+.white.selected{
+    background-color: #f6f768;
+}
+
+@keyframes select {
+    0% {
+        border: 0.4vw inset #fff;
+    }
+    100% {
+        border: none;
+    }
+}
