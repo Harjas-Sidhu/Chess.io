@@ -1,40 +1,54 @@
 const rows = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-const getKeyByValue = (object, value) => {
-    return Number.parseInt(Object.keys(object).find(key => object[key] === value));
+const getKeyByValue = (obj, value) => {
+    return Number.parseInt(Object.keys(obj).find(key => obj[key] === value));
 }
 
-const piece_positon = (piece) => {
-    const piece_position = piece.parentElement.id;
-    const piece_position_list = piece_position.split('-');
-    return piece_position_list;
-}
+let selected_piece_position = null;
 
-const piece_color_finder = (piece) => {
-    const piece_color = piece.classList[1];
-    return piece_color;
-}
-
-const piece_type_finder = (piece) => {
-    const piece_type = piece.classList[2];
-    return piece_type;
-}
-
-let turn = 1;
-
-let selected_piece = document.getElementById('a-1').children[0];
-
-const turn_counter = () => {
-    if(turn == 1) {
-        turn = 0;
+const piece_generator = (board) => {
+    for (let i = 0; i < 8; i++) {
+        ;
+        for (let j = 0; j < 8; j++) {
+            if (board[i][j] != null) {
+                const piece = document.createElement('div');
+                piece.classList.add('piece');
+                if (board[i][j] == board[i][j].toUpperCase()) {
+                    piece.classList.add('black')
+                }
+                else {
+                    piece.classList.add('white');
+                }
+                if (board[i][j].toUpperCase() == 'R') {
+                    piece.classList.add('rook');
+                }
+                else if (board[i][j].toUpperCase() == 'N') {
+                    piece.classList.add('knight');
+                }
+                else if (board[i][j].toUpperCase() == 'B') {
+                    piece.classList.add('bishop');
+                }
+                else if (board[i][j].toUpperCase() == 'Q') {
+                    piece.classList.add('queen');
+                }
+                else if (board[i][j].toUpperCase() == 'K') {
+                    piece.classList.add('king');
+                }
+                else if (board[i][j].toUpperCase() == 'P') {
+                    piece.classList.add('pawn');
+                }
+                document.getElementById(`${rows[i]}-${j + 1}`).appendChild(piece);
+            }
+        }
     }
-    else {
-        turn = 1;
-    }
 }
+
+piece_generator(board);
+
+let turn = 0;
 
 const turn_indicator = (turn) => {
-    if(turn == 1) {
+    if (turn == 0) {
         return 'white';
     }
     else {
@@ -42,142 +56,432 @@ const turn_indicator = (turn) => {
     }
 }
 
-const possible_moves = (selected_piece) => {
-    
-    const piece_type = piece_type_finder(selected_piece);
-    const piece_color = piece_color_finder(selected_piece);
-    const current_row = piece_positon(selected_piece)[0];
-    const current_column = Number.parseInt(piece_positon(selected_piece)[1]);
-    let possible_moves = [];
-    let index = 0
-
-    if(piece_type == 'rook'){
-        for(let i = 0; i < 8; i++){
-            for(let j = 1; j < 9; j++){
-                if(rows[i] == current_row && j != current_column){
-                    possible_moves[index] = `${rows[i]}-${j}`;
-                    index++;
-                }
-                else if(j == current_column && rows[i] != current_row){
-                    possible_moves[index] = `${rows[i]}-${j}`;
-                    index++;
-                }
-            }
-        }
+const piece_color_finder = (piece) => {
+    if (piece.toUpperCase() != piece) {
+        return 'white';
     }
-
-    else if(piece_type == 'bishop'){
-        for(let i = 0; i < 8; i++){
-            for(let j = 1; j < 9; j++){
-                if(Math.abs(getKeyByValue(rows, current_row) - i) == Math.abs(current_column - j) && j != current_column){
-                    possible_moves[index] = `${rows[i]}-${j}`;
-                    index++;
-                }
-            }
-        }
-        
+    else {
+        return 'black';
     }
+}
 
-    else if(piece_type == 'queen'){
-        for(let i = 0; i < 8; i++){
-            for(let j = 1; j < 9; j++){
-                if(rows[i] == current_row && j != current_column){
-                    possible_moves[index] = `${rows[i]}-${j}`;
+const possible_moves = (piece_position) => {
+    const row = Number.parseInt(piece_position.split('-')[0]);
+    const column = Number.parseInt(piece_position.split('-')[1]);
+    const piece_color = piece_color_finder(board[row][column]);
+    const piece_type = board[row][column].toUpperCase();
+    const possible_moves = [];
+    let index = 0;
+
+    if(piece_type == 'R'){
+        for(let i = row; i < 8; i++){
+            if(i != row){
+                if(board[i][column] == undefined){
+                    possible_moves[index] = `${i}-${column}`;
                     index++;
-                }
-                else if(j == current_column && rows[i] != current_row){
-                    possible_moves[index] = `${rows[i]}-${j}`;
-                    index++;
-                }
-            }
-        }
-        for(let i = 0; i < 8; i++){
-            for(let j = 1; j < 9; j++){
-                if(Math.abs(getKeyByValue(rows, current_row) - i) == Math.abs(current_column - j) && j != current_column){
-                    possible_moves[index] = `${rows[i]}-${j}`;
-                    index++;
-                }
-            }
-        }
-    }
-
-    else if(piece_type == 'king'){
-        for(let i = getKeyByValue(rows, current_row) - 1; i < getKeyByValue(rows, current_row) + 2; i++){
-            for(let j = current_column - 1; j < current_column + 2; j++){
-                if(rows[i] == current_row && j != current_column){
-                    if(!(i < 0 || i > 7 || j < 1 || j > 8)){
-                        possible_moves[index] = `${rows[i]}-${j}`;
-                        index++;
-                    }
-                }
-                else if(j == current_column && rows[i] != current_row){
-                    if(!(i < 0 || i > 7 || j < 1 || j > 8)){
-                        possible_moves[index] = `${rows[i]}-${j}`;
-                        index++;
-                    }
-                }
-            }
-        }
-        for(let i = getKeyByValue(rows, current_row) - 1; i < getKeyByValue(rows, current_row) + 2; i++){
-            for(let j = current_column - 1; j < current_column + 2; j++){
-                if(Math.abs(getKeyByValue(rows, current_row) - i) == Math.abs(current_column - j) && j != current_column){
-                    if(!(i < 0 || i > 7 || j < 1 || j > 8)){
-                        possible_moves[index] = `${rows[i]}-${j}`;
-                        index++;
-                    }
-                }
-            }
-        }
-    }
-
-    else if(piece_type == 'knight'){
-        for(let i = 0; i < 8; i++){
-            for(let j = 1; j < 9; j++){
-                if(Math.abs(i - getKeyByValue(rows, current_row)) == 2 && Math.abs(j - current_column) == 1){
-                    if(!(i < 0 || i > 7 || j < 1 || j > 8)){
-                        possible_moves[index] = `${rows[i]}-${j}`;
-                        index++;
-                    }
-                }
-                else if(Math.abs(i - getKeyByValue(rows, current_row)) == 1 && Math.abs(j - current_column) == 2){
-                    if(!(i < 0 || i > 7 || j < 1 || j > 8)){
-                        possible_moves[index] = `${rows[i]}-${j}`;
-                        index++;
-                    }
-                }
-            }
-        }
-    }
-
-    else if(piece_type == 'pawn'){
-        for(let i = 0; i < 8; i++){
-            if(piece_color == 'white'){
-                if(current_row == 'b'){
-                    if(i < getKeyByValue(rows, current_row) + 3 && i > getKeyByValue(rows, current_row)){
-                        possible_moves[index] = `${rows[i]}-${current_column}`;
-                        index++;
-                    }
                 }
                 else{
-                    if(i < getKeyByValue(rows, current_row) + 2 && i > getKeyByValue(rows, current_row)){
-                        possible_moves[index] = `${rows[i]}-${current_column}`;
-                        index++;
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+        for(let i = row; i >= 0; i--){
+            if(i != row){
+                if(board[i][column] == undefined){
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
+                }
+                else{
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+        for(let i = column; i < 8; i++){
+            if(i != column){
+                if(board[row][i] == undefined){
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                }
+                else{
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+        for(let i = column; i >= 0; i--){
+            if(i != column){
+                if(board[row][i] == undefined){
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                }
+                else{
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+    }
+
+    else if(piece_type == 'N'){
+        if(row+2 < 8){
+            if(column+1 < 8){
+                possible_moves[index] = `${row+2}-${column+1}`;
+                index++;
+            }
+            if(column-1 > -1){
+                possible_moves[index] = `${row+2}-${column-1}`;
+                index++;
+            }
+        }
+        if(row-2 > -1){
+            if(column+1 < 8){
+                possible_moves[index] = `${row-2}-${column+1}`;
+                index++;
+            }
+            if(column-1 > -1){
+                possible_moves[index] = `${row-2}-${column-1}`;
+                index++;
+            }
+        }
+        if(column+2 < 8){
+            if(row+1 < 8){
+                possible_moves[index] = `${row+1}-${column+2}`;
+                index++;
+            }
+            if(row-1 > -1){
+                possible_moves[index] = `${row-1}-${column+2}`;
+                index++;
+            }
+        }
+        if(column-2 > -1){
+            if(row+1 < 8){
+                possible_moves[index] = `${row+1}-${column-2}`;
+                index++;
+            }
+            if(row-1 > -1){
+                possible_moves[index] = `${row-1}-${column-2}`;
+                index++;
+            }
+        }
+    }
+
+    else if(piece_type == 'B'){
+        let obstacle = 0;
+        for(let i = row; i < 8; i++){
+            for(let j = column; j < 8; j++){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
                     }
                 }
             }
-            else if(piece_color == 'black'){
-                if(current_row == 'g'){
-                    if(i > getKeyByValue(rows, current_row) - 3 && i < getKeyByValue(rows, current_row)){
-                        possible_moves[index] = `${rows[i]}-${current_column}`;
-                        index++;
+        }
+
+        obstacle = 0;
+        for(let i = row; i < 8; i++){
+            for(let j = column; j >= 0; j--){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
                     }
+                    if(obstacle){
+                        break;
+                    }
+                }
+            }
+        }
+
+        obstacle = 0;
+        for(let i = row; i >= 0; i--){
+            for(let j = column; j < 8; j++){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
+                    }
+                }
+            }
+        }
+
+        obstacle = 0;
+        for(let i = row; i >= 0;i--){
+            for(let j = column; j >= 0; j--){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
+                    }
+                }
+            }
+        }
+    }
+ 
+    else if(piece_type == 'Q'){
+        for(let i = row; i < 8; i++){
+            if(i != row){
+                if(board[i][column] == undefined){
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
                 }
                 else{
-                    if(i > getKeyByValue(rows, current_row) - 2 && i < getKeyByValue(rows, current_row)){
-                        possible_moves[index] = `${rows[i]}-${current_column}`;
-                        index++;
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+        for(let i = row; i >= 0; i--){
+            if(i != row){
+                if(board[i][column] == undefined){
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
+                }
+                else{
+                    possible_moves[index] = `${i}-${column}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+        for(let i = column; i < 8; i++){
+            if(i != column){
+                if(board[row][i] == undefined){
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                }
+                else{
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+        for(let i = column; i >= 0; i--){
+            if(i != column){
+                if(board[row][i] == undefined){
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                }
+                else{
+                    possible_moves[index] = `${row}-${i}`;
+                    index++;
+                    break;
+                }
+            }
+        }
+
+        let obstacle = 0;
+        for(let i = row; i < 8; i++){
+            for(let j = column; j < 8; j++){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
                     }
                 }
+            }
+        }
+
+        obstacle = 0;
+        for(let i = row; i < 8; i++){
+            for(let j = column; j >= 0; j--){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
+                    }
+                }
+            }
+        }
+
+        obstacle = 0;
+        for(let i = row; i >= 0; i--){
+            for(let j = column; j < 8; j++){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
+                    }
+                }
+            }
+        }
+
+        obstacle = 0;
+        for(let i = row; i >= 0;i--){
+            for(let j = column; j >= 0; j--){
+                if(i!=row && j!=column){
+                    if(Math.abs(row-i) == Math.abs(column - j)){
+                        if(board[i][j] == undefined){
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                        }
+                        else{
+                            possible_moves[index] = `${i}-${j}`;
+                            index++;
+                            obstacle = 1;
+                            break;
+                        }
+                    }
+                    if(obstacle){
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    else if(piece_type == 'K'){
+        if(row+1 < 8){
+            possible_moves[index] = `${row+1}-${column}`;
+            index++;
+            if(column+1 < 8){
+                possible_moves[index] = `${row+1}-${column+1}`;
+                possible_moves[index+1] = `${row}-${column+1}`;
+                if(row-1 > -1){
+                    possible_moves[index+2] = `${row-1}-${column}`;
+                    possible_moves[index+3] = `${row-1}-${column+1}`;
+                }
+                index += 4;
+            }
+            if(column-1 > -1){
+                possible_moves[index] = `${row+1}-${column-1}`;
+                possible_moves[index+1] = `${row}-${column-1}`;
+                if(row-1 > -1){
+                    possible_moves[index+2] = `${row-1}-${column-1}`;
+                }
+                index += 3;
+            }
+        }
+    }
+
+    else if(piece_type == 'P'){
+        let obstacle = 0;
+        if(piece_color == 'white'){
+            if(row+1 < 8){
+                if(board[row+1][column] == undefined){
+                    possible_moves[index] = `${row+1}-${column}`;
+                    index++;
+                }
+                else{
+                    obstacle = 1;
+                }
+                if(board[row+1][column+1] != undefined){
+                    possible_moves[index] = `${row+1}-${column+1}`;
+                    index++;
+                }
+                if(board[row+1][column-1] != undefined){
+                    possible_moves[index] = `${row+1}-${column-1}`;
+                    index++;
+                }
+            }
+            if(row == 1 && obstacle == 0 && board[row+2][column] == undefined){
+                possible_moves[index] = `${row+2}-${column}`;
+                index++;
+            }
+        }
+        else if(piece_color == 'black'){
+            if(row-1 > -1){
+                if(board[row-1][column] == undefined){
+                    possible_moves[index] = `${row-1}-${column}`;
+                    index++;
+                }
+                else{
+                    obstacle = 1;
+                }
+                if(board[row-1][column+1] != undefined){
+                    possible_moves[index] = `${row-1}-${column+1}`;
+                    index++;
+                }
+                if(board[row-1][column-1] != undefined){
+                    possible_moves[index] = `${row-1}-${column-1}`;
+                    index++;
+                }
+            }
+            if(row == 6 && obstacle == 0 && board[row-2][column] == undefined){
+                possible_moves[index] = `${row-2}-${column}`;
+                index++;
             }
         }
     }
@@ -185,68 +489,24 @@ const possible_moves = (selected_piece) => {
     return possible_moves;
 }
 
-const move_validator = (possible_moves, selected_piece) => {
-    const piece_type = piece_type_finder(selected_piece);
-    const piece_color = piece_color_finder(selected_piece);
-    let obstacle_col = [];
-    let obstacle_row = [];
-    let obstacle_index = 0;
-    let valid_moves = [];
-    let index = 0;
-
-    for(i in possible_moves){
-        if(document.getElementById(possible_moves[i]).children[0]){
-            obstacle_row[obstacle_index] = possible_moves[i].split('-')[0];
-            obstacle_col[obstacle_index] = possible_moves[i].split('-')[1];
-            obstacle_index++;
-        }
-    }
-
-    if(piece_type == 'knight'){
-        for(i in possible_moves){
-            const row = possible_moves[i].split('-')[0];
-            const col = possible_moves[i].split('-')[1];
-            if(obstacle_col != col && obstacle_row != row){
-                valid_moves[index] = possible_moves[i];
-                index++;
-            }
-            else{
-                if(piece_color != piece_color_finder(document.getElementById(possible_moves[i]).children[0])){
-                    valid_moves[index] = possible_moves[i];
-                    index++;
-                }
-            }
-        }
-    }
-
-    if(piece_type == 'bishop'){
-        valid_moves = possible_moves;
-    }
-
-    return valid_moves;
-}
-
-const cell_selector = () => {
-    const pieces = document.querySelectorAll('.piece');
+const piece_selector = () => {
+    let pieces = document.querySelectorAll('.piece');
     pieces.forEach(piece => {
-        if(turn_indicator(turn) == piece_color_finder(piece)){
-            piece.addEventListener('click', (piece)=>{
-                for(i = 0; i < pieces.length; i++) {
-                    if(pieces[i] != piece.target){
+        addEventListener("click", (piece) => {
+            if (piece.target.classList[1] == turn_indicator(turn) && piece.target.parentElement.classList.contains('cell')) {
+                let position = piece.target.parentElement.id;
+                selected_piece_position = `${getKeyByValue(rows, position.split('-')[0])}-${Number.parseInt(position.split('-')[1]) - 1}`;
+                for (let i = 0; i < pieces.length; i++) {
+                    if (pieces[i] != piece.target) {
                         pieces[i].parentElement.classList.remove('selected');
                     }
                 }
-                if(piece.target.parentElement.classList.contains('selected')){
-                    piece.target.parentElement.classList.remove('selected');
-                }
-                else{
-                    piece.target.parentElement.classList.add('selected');
-                    selected_piece = piece.target;
-                }
-                console.log(move_validator(possible_moves(selected_piece), selected_piece));
-            })
-        }
-    });
+                piece.target.parentElement.classList.add('selected');
+            }
+            let p = possible_moves(selected_piece_position);
+            console.log(p);
+        })
+    })
 }
 
-cell_selector();
+piece_selector();
