@@ -503,8 +503,19 @@ const piece_selector = () => {
                 }
                 piece.target.parentElement.classList.add('selected');
             }
-            let p = possible_moves(selected_piece_position);
-            console.log(p);
+            const list = possible_moves(selected_piece_position);
+            list.forEach(move => {
+                const row = Number.parseInt(move.split('-')[0]);
+                const column = Number.parseInt(move.split('-')[1]);
+                const selected_row = selected_piece_position.split('-')[0];
+                const selected_column = selected_piece_position.split('-')[1];
+                if(board[row][column] != undefined){
+                    if(piece_color_finder(board[row][column]) == piece_color_finder(board[selected_row][selected_column])){
+                        delete list[getKeyByValue(list, move)];
+                    }
+                }
+            })
+            console.log(list);
         })
     })
 }

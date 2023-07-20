@@ -35,6 +35,9 @@ body {
 .cell{
     width: 5.875vw;
     height: 5.875vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cell.white{
