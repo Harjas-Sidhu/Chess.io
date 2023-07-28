@@ -40,6 +40,24 @@ body {
     justify-content: center;
 }
 
+.possible::after{
+    content: '';
+    height: 5%;
+    width: 5%;
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, .2);
+}
+
+.cut::after{
+    content: '';
+    height: 10%;
+    width: 10%;
+    position: absolute;
+    border: rgba(0, 0, 0, .2) solid 0.6vw;
+    border-radius: 50%;
+}
+
 .cell.white{
     background-color: #eeeed2;
 }
