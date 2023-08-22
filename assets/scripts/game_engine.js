@@ -4,6 +4,38 @@ const getKeyByValue = (obj, value) => {
     return Number.parseInt(Object.keys(obj).find(key => obj[key] === value));
 }
 
+const board_generator = () => {
+    const board = document.getElementById('board');
+    for (i = 1; i < 9; i++) {
+        const row = document.createElement('div');
+        row.classList.add('row');
+        row.id = `${rows[i - 1]}`;
+        for (j = 1; j < 9; j++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.id = `${rows[i - 1]}-${j}`;
+            row.appendChild(cell);
+            if (i % 2 == 0) {
+                if (j % 2 == 0) {
+                    cell.classList.add('white');
+                } else {
+                    cell.classList.add('black');
+                }
+            }
+            else {
+                if (j % 2 == 0) {
+                    cell.classList.add('black');
+                } else {
+                    cell.classList.add('white');
+                }
+            }
+        }
+        board.appendChild(row);
+    }
+}
+
+board_generator();
+
 const board = [];
 for (let i = 0; i < 8; i++) {
     board[i] = [];
@@ -34,9 +66,13 @@ for (let i = 0; i < 8; i++) {
     }
 }
 
-board[5][4] = 'n';
-
-let selected_piece_position = null;
+const prev_board = [];
+for (let i = 0; i < 8; i++) {
+    prev_board[i] = [];
+    for (let j = 0; j < 8; j++) {
+        prev_board[i][j] = board[i][j];
+    }
+}
 
 const clear_board = () => {
     document.querySelectorAll('.piece').forEach(piece => {
@@ -456,19 +492,26 @@ const possible_moves = (piece_position) => {
             if (column + 1 < 8) {
                 possible_moves[index] = `${row + 1}-${column + 1}`;
                 possible_moves[index + 1] = `${row}-${column + 1}`;
-                if (row - 1 > -1) {
-                    possible_moves[index + 2] = `${row - 1}-${column}`;
-                    possible_moves[index + 3] = `${row - 1}-${column + 1}`;
-                }
-                index += 4;
+                index += 2;
             }
             if (column - 1 > -1) {
                 possible_moves[index] = `${row + 1}-${column - 1}`;
                 possible_moves[index + 1] = `${row}-${column - 1}`;
-                if (row - 1 > -1) {
-                    possible_moves[index + 2] = `${row - 1}-${column - 1}`;
-                }
-                index += 3;
+                index += 2;
+            }
+        }
+        if (row - 1 > -1) {
+            possible_moves[index] = `${row - 1}-${column}`;
+            index++;
+            if (column + 1 < 8) {
+                possible_moves[index] = `${row - 1}-${column + 1}`;
+                possible_moves[index + 1] = `${row}-${column + 1}`;
+                index += 2;
+            }
+            if (column - 1 > -1) {
+                possible_moves[index] = `${row - 1}-${column - 1}`;
+                possible_moves[index + 1] = `${row}-${column - 1}`;
+                index += 2;
             }
         }
     }
@@ -526,112 +569,216 @@ const possible_moves = (piece_position) => {
     return possible_moves;
 }
 
-const piece_selector = () => {
-    let cells = document.querySelectorAll('.cell');
-    let pieces = document.querySelectorAll('.piece');
-    let prev_turn = turn;
-    let tar_pos = null;
-    selected_piece_position = null;
-    pieces.forEach(piece => {
-        piece.addEventListener("click", (piece) => {
-            if (piece.target.classList[1] == turn_indicator(turn) && piece.target.parentElement.classList.contains('cell')) {
-                let position = piece.target.parentElement.id;
-                selected_piece_position = `${getKeyByValue(rows, position.split('-')[0])}-${Number.parseInt(position.split('-')[1]) - 1}`;
-                for (let i = 0; i < pieces.length; i++) {
-                    if (pieces[i] != piece.target) {
-                        pieces[i].parentElement.classList.remove('selected');
-                    }
-                }
-                piece.target.parentElement.classList.add('selected');
-            }
-            if (selected_piece_position != null) {
-                const list = possible_moves(selected_piece_position);
-                list.forEach(move => {
-                    const row = Number.parseInt(move.split('-')[0]);
-                    const column = Number.parseInt(move.split('-')[1]);
-                    const selected_row = selected_piece_position.split('-')[0];
-                    const selected_column = selected_piece_position.split('-')[1];
-                    if (board[row][column] != undefined) {
-                        if (piece_color_finder(board[row][column]) == piece_color_finder(board[selected_row][selected_column])) {
-                            delete list[getKeyByValue(list, move)];
-                        }
-                    }
-                })
-                for (let i = 0; i < cells.length; i++) {
-                    if (cells[i].classList.contains('possible')) {
-                        cells[i].classList.remove('possible');
-                    }
-                    if (cells[i].classList.contains('cut')) {
-                        cells[i].classList.remove('cut');
-                    }
-                }
-                for (i in list) {
-                    const row = Number.parseInt(list[i].split('-')[0]);
-                    const col = Number.parseInt(list[i].split('-')[1]);
-                    const pos = `${rows[row]}-${col + 1}`;
-                    if (document.getElementById(pos).children[0] != undefined) {
-                        if (document.getElementById(pos).children[0].classList.contains('piece')) {
-                            document.getElementById(pos).classList.add('cut');
-                        }
-                    }
-                    else {
-                        document.getElementById(pos).classList.add('possible');
-                    }
-                }
+let selected = null;
 
-                const sel_row = selected_piece_position.split('-')[0];
-                const sel_col = selected_piece_position.split('-')[1];
-                const sel_piece = board[sel_row][sel_col];
-                console.log(board[sel_row][sel_col]);
-
-                if (selected_piece_position != null) {
-                    const elems = document.querySelectorAll('.cut, .possible');
-                    elems.forEach(elem => {
-                        elem.addEventListener("click", (move) => {
-                            if (move.target.classList.contains('cell')) {
-                                tar_pos = move.target.id;
-                            }
-                            let moves = [];
-                            let index = 0;
-                            document.querySelectorAll('.cut, .possible').forEach(elem => {
-                                moves[index] = elem.id;
-                                index++;
-                            })
-                            if (moves.includes(tar_pos)) {
-                                const row = getKeyByValue(rows, tar_pos.split('-')[0]);
-                                const col = Number.parseInt(tar_pos.split('-')[1]) - 1;
-                                board[row][col] = sel_piece;
-                                if (board[row][col] == board[sel_row][sel_col] && board[row][col] == sel_piece && piece_color_finder(board[row][col]) == turn_indicator(turn)) {
-                                    board[sel_row][sel_col] = undefined;
-                                    if (prev_turn == turn) {
-                                        if (turn == 0) {
-                                            turn = 1;
-                                        }
-                                        else {
-                                            turn = 0;
-                                        }
-                                    }
-                                    clear_board();
-                                    piece_generator(board);
-                                    document.querySelectorAll('.possible, .cut').forEach(move => {
-                                        if (move.classList.contains('possible')) {
-                                            move.classList.remove('possible');
-                                        }
-                                        else if (move.classList.contains('cut')) {
-                                            move.classList.remove('cut');
-                                        }
-                                    })
-                                    document.getElementsByClassName('selected')[0].classList.remove('selected');
-                                    selected_piece_position = null;
+const threatmap = (board, color) => {
+    const threatmap = [];
+    let index = 0;
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            if (board[i][j]) {
+                if (piece_color_finder(board[i][j]) != color) {
+                    const moves = possible_moves(`${i}-${j}`);
+                    moves.forEach(move => {
+                        const r = Number.parseInt(move.split('-')[0]);
+                        const c = Number.parseInt(move.split('-')[1]);
+                        if (board[i][j].toUpperCase() != 'P') {
+                            if (board[r][c]) {
+                                if (piece_color_finder(board[i][j]) != piece_color_finder(board[r][c])) {
+                                    threatmap[index] = move;
+                                    index++;
                                 }
                             }
-                            move.stopPropagation();
-                            piece_selector();
-                        }, { once: true, bubbles: true });
+                            else {
+                                threatmap[index] = move;
+                                index++;
+                            }
+                        }
+                        else {
+                            if (piece_color_finder(board[i][j]) == 'black') {
+                                if (i - 1 > -1) {
+                                    if (j - 1 > -1) {
+                                        threatmap[index] = `${i - 1}-${j - 1}`;
+                                        index++;
+                                    }
+                                    if (j + 1 < 8) {
+                                        threatmap[index] = `${i - 1}-${j + 1}`;
+                                        index++;
+                                    }
+                                }
+                            }
+                            else {
+                                if (i + 1 < 8) {
+                                    if (j - 1 > -1) {
+                                        threatmap[index] = `${i + 1}-${j - 1}`;
+                                        index++;
+                                    }
+                                    if (j + 1 < 8) {
+                                        threatmap[index] = `${i + 1}-${j + 1}`;
+                                        index++;
+                                    }
+                                }
+                            }
+                        }
                     })
                 }
             }
-        }, true)
+        }
+    }
+    return threatmap;
+}
+
+const virtual_board = (position) => {
+    const v_board = board;
+    const r = Number.parseInt(position.split('-')[0]);
+    const c = Number.parseInt(position.split('-')[1]);
+    let possible_positions = possible_moves(`${r}-${c}`);
+    let color = piece_color_finder(v_board[r][c]);
+    let saving_moves = [];
+    let kr = 0;
+    let kc = 0;
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            if (possible_positions.includes(`${i}-${j}`)) {
+                if (v_board[i][j] == null || piece_color_finder(v_board[i][j]) != color) {
+                    v_board[i][j] = v_board[r][c];
+                    v_board[r][c] = undefined;
+                    for (let i = 0; i < 8; i++) {
+                        for (let j = 0; j < 8; j++) {
+                            if (v_board[i][j]) {
+                                if (v_board[i][j].toUpperCase() == 'K' && piece_color_finder(v_board[i][j]) == color) {
+                                    kr = i;
+                                    kc = j;
+                                }
+                            }
+                        }
+                    }
+                    let threats = threatmap(v_board, color);
+                    if (!threats.includes(`${kr}-${kc}`)) {
+                        saving_moves.push(`${i}-${j}`);
+                    }
+                    v_board[r][c] = v_board[i][j];
+                    v_board[i][j] = undefined;
+                }
+            }
+        }
+    }
+    return saving_moves;
+}
+
+const move_piece = (move) => {
+    const target = move.currentTarget;
+    console.log(target.id);
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            if(board[i][j] != prev_board[i][j]){
+                board[i][j] = prev_board[i][j];
+            }
+        }
+    }
+    if (target) {
+        if (target.classList.contains('cut') || target.classList.contains('possible')) {
+            const old = document.querySelectorAll('.cut, .possible');
+            old.forEach(cell => {
+                cell.removeEventListener("click", move_piece, { once: true });
+                cell.classList.remove('cut', 'possible');
+            });
+            const row = getKeyByValue(rows, target.id.split('-')[0]);
+            const col = Number.parseInt(target.id.split('-')[1]) - 1;
+            const sel_row = Number.parseInt(selected.split('-')[0]);
+            const sel_col = Number.parseInt(selected.split('-')[1]);
+            board[row][col] = board[sel_row][sel_col];
+            board[sel_row][sel_col] = undefined;
+            selected = null;
+            turn = (turn + 1) % 2;
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    prev_board[i][j] = board[i][j];
+                }
+            }
+            clear_board();
+            piece_generator(board);
+            piece_selector();
+        }
+    }
+}
+
+const pieceClicked = (piece) => {
+
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            if(board[i][j] != prev_board[i][j]){
+                board[i][j] = prev_board[i][j];
+            }
+        }
+    }
+
+    if (piece.currentTarget.parentElement.classList.contains('cell')) {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => {
+            if (cell.classList.contains('selected')) {
+                cell.classList.remove('selected');
+            }
+            if (cell.classList.contains('possible')) {
+                cell.classList.remove('possible');
+            }
+            if (cell.classList.contains('cut')) {
+                cell.classList.remove('cut');
+            }
+        })
+
+        const row = getKeyByValue(rows, piece.currentTarget.parentElement.id.split('-')[0]);
+        const col = Number.parseInt(piece.currentTarget.parentElement.id.split('-')[1]) - 1;
+        if (piece_color_finder(board[row][col]) == turn_indicator(turn)) {
+            selected = `${row}-${col}`;
+
+            piece.currentTarget.parentElement.classList.add('selected');
+
+            const moves = virtual_board(selected);
+            const ui_moves = [];
+            index = 0;
+
+            moves.forEach(move => {
+                const lr = rows[Number.parseInt(move.split('-')[0])];
+                const lc = Number.parseInt(move.split('-')[1]) + 1;
+                const p = board[Number.parseInt(move.split('-')[0])][Number.parseInt(move.split('-')[1])];
+                if (p) {
+                    if (piece_color_finder(p) != piece_color_finder(board[row][col])) {
+                        ui_moves[index] = `${lr}-${lc}`;
+                        index++;
+                    }
+                }
+                else {
+                    ui_moves[index] = `${lr}-${lc}`;
+                    index++;
+                }
+            })
+
+            ui_moves.forEach(move => {
+                if (document.getElementById(move).children[0]) {
+                    document.getElementById(move).classList.add('cut');
+                }
+                else {
+                    document.getElementById(move).classList.add('possible');
+                }
+            })
+
+            ui_moves.forEach(move => {
+                document.getElementById(move).addEventListener("click", move_piece, { once: true });
+            })
+        }
+    }
+}
+
+const piece_selector = () => {
+    const pieces = document.querySelectorAll('.piece');
+
+    pieces.forEach(piece => {
+
+        if (piece.parentElement.classList.contains('selected')) {
+            piece.parentElement.classList.remove('selected');
+        }
+        piece.addEventListener("click", pieceClicked);
     })
 }
 
